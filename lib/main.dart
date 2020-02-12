@@ -1,142 +1,19 @@
 import 'package:flutter/material.dart';
+import "package:share/share.dart";
+import 'dart:math';
 
+void main() {
+  runApp(MaterialApp(
+      initialRoute: '/',
+      routes: {
+        '/':(BuildContext context) => MainScreen(),
+        '/cardtable':(BuildContext context) => CardTable()
+        } // routes
+      ), //MaterialApp
+    ); // runApp
+  } // main
 
-
-class CardZoomState extends State<CardZoom>{
-  CardZoomState(this.index);
-  final int index;
-  bool center = false;
-
-  void zoom(){
-InkWell()
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Hero(
-      tag:"$index",
-      child: CardIn(index),
-    );
-    }
-  }
-
-
-
-class CardZoom extends StatefulWidget{
-  CardZoom(this.index);
-  final int index;
-  @override
-  State<StatefulWidget> createState() {
-    return null;
-  }
-
-
-  }
-
-class _CardInState extends State<CardIn>{
-  _CardInState(this.index);
-  final int index;
-  int stackImage = 0;
-
-  void changeImage (){ 
-    if (stackImage == 0){stackImage = 1;}
-    else if (stackImage == 1){stackImage = 0;}
-    setState(() {});
-    }
-
-  @override
-  Widget build(BuildContext context) {
-    return FlatButton(
-      onPressed: changeImage,
-      child:IndexedStack(
-        index:stackImage,
-        children:<Widget>[
-          Image.asset("images/$index"+"front.png"),
-          Image.asset("images/$index"+"back.png")
-          ]
-        )
-      );
-    }
-  }
-
-class CardIn extends StatefulWidget {
-  CardIn(this.index);
-  final int index;
-  @override
-  _CardInState createState() => _CardInState(index);
-  }
-
-void addToMyDeck(int index){
-
-  }
-
-class CardFront extends StatelessWidget{
-  CardFront( this.index);
-  final int index;
-
-  @override
-
-  Widget build(BuildContext context) {
-    print("CardFront was called");
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: <Widget>[
-            Text("text"),
-            IconButton(
-              icon: Icon(Icons.volume_down),
-              onPressed: null // реализация одной функции заказчика
-              ),
-            IconButton(
-              icon: Icon(Icons.volume_up),
-              onPressed: null // реализация одной функции заказчика
-              ),
-            ]
-          )
-        ),
-      body: Center(child:CardIn(index)
-        ),
-      );
-    }
-  }
-
-class Cards extends StatelessWidget {
-  @override
-  Widget build(context) {
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(children:
-        <Widget>[
-          FlatButton(
-            child: Text("MyDecs"),
-            onPressed: (){Navigator.pop(context);},
-            ),
-          ]
-        ),
-      ),
-      appBar: AppBar(
-        title: FlatButton(
-          onPressed: (){Navigator.pop(context);},
-          child: Text("test")
-          ),
-        ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        children: List.generate(
-          4,
-          (index) {return  FlatButton(
-            onPressed: (){
-              print("OnPressed: Success");
-              return CardFront(index);}, 
-            child: Image.asset("images/$index"+"front.png"),
-            );
-            }, // itemBuilder
-          ),
-        ),
-      );
-    } // Widget build
-  } // Cards
-
+  
 class MainScreen extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
@@ -152,7 +29,7 @@ class MainScreen extends StatelessWidget{
             child: ListView(
               children: <Widget>[
                 RaisedButton(
-                  onPressed: (){Navigator.pushNamed(context, "/cards");},
+                  onPressed: (){Navigator.pushNamed(context, "/cardtable");},
                   child:Text("Cards")
                   ),
                 RaisedButton(
@@ -185,13 +62,173 @@ class MainScreen extends StatelessWidget{
     }
   }
  
-void main() {
-  runApp(MaterialApp(
-      initialRoute: '/',
-      routes: {
-        '/':(BuildContext context) => MainScreen(),
-        '/cards':(BuildContext context) => Cards()
-        } // routes
+
+class CardTable extends StatelessWidget {
+
+  final int cardColumnSize = 2; // temprory final
+
+  @override
+  Widget build(context) {
+    return Scaffold(
+      drawer: Drawer(
+        child: ListView(children:
+        <Widget>[
+          FlatButton(
+            child: Text("MyDecs"),
+            onPressed: (){Navigator.pop(context);},
+            ),
+          ]
+        ),
       ),
-    ); // runApp
-  } // void main()
+      appBar: AppBar(
+        title: FlatButton(
+          onPressed: (){Navigator.pop(context);},
+          child: Text("test")
+          ),
+        ),
+      body: GridView.count(
+        crossAxisCount: cardColumnSize,
+        children: List.generate(
+          64,
+          (index) {
+            bool front = true; // TO DO add a button to change starting side & make it Stateful to change sides while running
+            int img = index * 2;
+            String f = img.toString();
+            String str1 = '0' * (3 - f.runes.length) + f;
+            img++;
+            f = img.toString();
+            String str2 = '0' * (3 - f.runes.length) + f;
+            String show = front ? str1 : str2;
+            Widget der = Image.asset("images/bm_cards-$show.png");
+            return  FlatButton(
+            onPressed: (){
+              return CardPage(index);}, 
+            child: der,
+            );
+            }, // itemBuilder
+          ),
+        ),
+      );
+    } // Widget build
+  } // Cards
+
+
+class CardPage extends StatelessWidget{
+  CardPage( this.index);
+  final int index; // index shall be final
+
+  @override
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: <Widget>[
+            Text("text"),
+            IconButton(
+              icon: Icon(Icons.volume_down),
+              onPressed: null // реализация одной функции заказчика
+              ),
+            IconButton(
+              icon: Icon(Icons.volume_up),
+              onPressed: null // реализация одной функции заказчика
+              ),
+            ]
+          )
+        ),
+      body: Card(index)
+      );
+    }
+  }
+
+
+class Card extends StatefulWidget {
+  Card(this.index,{Key key}) : super(key: key);
+  final int index;
+
+  CardState createState() => CardState(index);
+}
+
+class CardState extends State<Card>
+  with TickerProviderStateMixin {
+    CardState(this.index);
+    AnimationController controller;
+    AnimationController controller1;
+    Animation growAnimation;
+    Animation qwer;
+    bool front = true;
+    int stack = 0;
+    int index;
+
+  void tickfront() async {
+    controller.forward();
+    await new Future.delayed(Duration(milliseconds: 500), () {stack=1;controller1.forward();});
+    }
+
+  void tickback() async {
+    controller1.reverse();
+    await new Future.delayed(Duration(milliseconds: 500), () {stack=0;controller.reverse();});
+    }
+
+  @override
+  void initState() {
+    super.initState();
+    controller1 =
+      AnimationController(vsync: this, duration: const Duration(milliseconds : 500))
+      ..addListener(() {
+        setState(() {});
+        });
+    controller =
+      AnimationController(vsync: this, duration: const Duration(milliseconds : 500))
+        ..addListener(() {
+          setState(() {});
+          });
+    qwer = Tween<double>(
+      begin: 0.0, 
+      end: 0.5)
+      .animate(controller);
+
+    growAnimation = Tween<double>(
+      begin: 0.5, 
+      end: 1.0)
+      .animate(controller1);
+    }
+
+  @override
+  Widget build(BuildContext context) {
+    int img = index * 2;
+    String f = img.toString();
+    String str1 = '0' * (3 - f.runes.length) + f;
+    img++;
+    f = img.toString();
+    String str2 = '0' * (3 - f.runes.length) + f;
+    return  Center(
+      child: 
+        IndexedStack(
+          index: stack,
+          children:<Widget>[
+            Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.005)
+                ..rotateY(pi * qwer.value),
+              alignment: Alignment.center,  
+              child: FlatButton(
+                onPressed: tickfront, 
+                child: Image.asset("images/bm_cards-$str1.png"),
+                )
+              ),
+            Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.005)
+                ..rotateY(pi * growAnimation.value),
+              alignment: Alignment.center,
+              child: FlatButton(
+                onPressed: tickback, 
+                child: Image.asset("images/bm_cards-$str2.png"),
+                )
+              ),
+            ]
+        ),
+      );
+    } // Widget build
+  } // CardState
