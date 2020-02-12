@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import "package:share/share.dart";
 import 'dart:math';
@@ -92,14 +94,14 @@ class CardTable extends StatelessWidget {
           64,
           (index) {
             bool front = true; // TO DO add a button to change starting side & make it Stateful to change sides while running
-            int img = index * 2;
-            String f = img.toString();
-            String str1 = '0' * (3 - f.runes.length) + f;
-            img++;
-            f = img.toString();
-            String str2 = '0' * (3 - f.runes.length) + f;
-            String show = front ? str1 : str2;
-            Widget der = Image.asset("images/bm_cards-$show.png");
+       //     int img = index * 2;
+        //    String f = img.toString();
+        //    String str1 = '0' * (3 - f.runes.length) + f;
+      //      img++;
+      //      f = img.toString();
+      //      String str2 = '0' * (3 - f.runes.length) + f;
+     //       String show = front ? str1 : str2;
+       //     Widget der = Image.asset("images/bm_cards-$show.png");
             return  Hdd(index,front);
             }, // itemBuilder
           ),
@@ -190,6 +192,7 @@ class CardState extends State<Card>
     bool front = true;
     int stack = 0;
     int index;
+    String text ;
 
   void tickfront() async {
     controller.forward();
@@ -263,3 +266,116 @@ class CardState extends State<Card>
       );
     } // Widget build
   } // CardState
+
+  class Card1Card1State extends StatefulWidget {
+  Card1Card1State(this.index,{Key key}) : super(key: key);
+  final int index;
+
+  Card1State createState() => Card1State(index);
+}
+
+class Card1State extends State<Card1Card1State>
+  with TickerProviderStateMixin {
+    Card1State(this.index);
+    AnimationController controller;
+    AnimationController controller1;
+    Animation growAnimation;
+    Animation qwer;
+    bool front = true;
+    int stack = 0;
+    int index;
+    
+
+  void tickfront() async {
+    controller.forward();
+    await new Future.delayed(Duration(milliseconds: 500), () {stack=1;controller1.forward();});
+    }
+
+  void tickback() async {
+    controller1.reverse();
+    await new Future.delayed(Duration(milliseconds: 500), () {stack=0;controller.reverse();});
+    }
+
+  @override
+  void initState() {
+    super.initState();
+    controller1 =
+      AnimationController(vsync: this, duration: const Duration(milliseconds : 500))
+      ..addListener(() {
+        setState(() {});
+        });
+    controller =
+      AnimationController(vsync: this, duration: const Duration(milliseconds : 500))
+        ..addListener(() {
+          setState(() {});
+          });
+    qwer = Tween<double>(
+      begin: 0.0, 
+      end: 0.5)
+      .animate(controller);
+
+    growAnimation = Tween<double>(
+      begin: 0.5, 
+      end: 1.0)
+      .animate(controller1);
+    }
+
+  @override
+  Widget build(BuildContext context) {
+    int img = index * 2;
+    String f = img.toString();
+    String str1 = '0' * (3 - f.runes.length) + f;
+    img++;
+    f = img.toString();
+    String str2 = '0' * (3 - f.runes.length) + f;
+    return  Center(
+      child: 
+        IndexedStack(
+          index: stack,
+          children:<Widget>[
+            Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.005)
+                ..rotateY(pi * qwer.value),
+              alignment: Alignment.center,  
+              child: FlatButton(
+                onPressed: tickfront, 
+                child: Image.asset("images/bm_cards-$str1.png"),
+                )
+              ),
+            Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.005)
+                ..rotateY(pi * growAnimation.value),
+              alignment: Alignment.center,
+              child: FlatButton(
+                onPressed: tickback, 
+                child: Image.asset("images/bm_cards-$str2.png"),
+                )
+              ),
+            ]
+        ),
+      );
+    } // Widget build
+  } // CardState
+
+  class TextSide extends StatelessWidget{
+    String text ;
+    @override
+    Widget build(BuildContext context) {
+      return Container(
+        child: Column(
+          children: <Widget>[
+            Container(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: Icon(Icons.share), 
+                onPressed: () {Share.share(text);} )),
+            Text("StrategyCard.ru | Карты Бизнес-моделей 2018"),
+            Text("Заголовок")
+          ]
+        ),
+      );
+    }
+
+  }
