@@ -100,11 +100,7 @@ class CardTable extends StatelessWidget {
             String str2 = '0' * (3 - f.runes.length) + f;
             String show = front ? str1 : str2;
             Widget der = Image.asset("images/bm_cards-$show.png");
-            return  FlatButton(
-            onPressed: (){
-              return CardPage(index);}, 
-            child: der,
-            );
+            return  Hdd(index,front);
             }, // itemBuilder
           ),
         ),
@@ -112,6 +108,41 @@ class CardTable extends StatelessWidget {
     } // Widget build
   } // Cards
 
+class Hdd extends StatefulWidget{
+  Hdd(this.index,this.front);
+  final int index;
+  bool front;
+
+  @override
+  State<StatefulWidget> createState() => Hddstate(index,front);
+}
+
+class Hddstate extends State<Hdd>{
+  Hddstate(this.index,this.front);
+  final int index;
+  bool front;
+  bool pos = true;
+  @override
+  Widget build(BuildContext context) {
+    Widget imagefront = Image.asset("images/front");
+    Widget imageback = Image.asset("images/back");
+    Widget image1 = Container(
+      child:AspectRatio(
+      aspectRatio: 1 / 1.4426373 ,
+      child: GestureDetector(
+        onTap:() {front = !front;},
+        child: front ? imagefront : imageback,
+      ),
+    ),);
+    Widget image2 = Card(index);
+    return Container(
+      child: GestureDetector(
+        onTap: (){pos = !pos;},
+        child: pos ? image1 : image2,
+      )
+    ,);
+  }
+}
 
 class CardPage extends StatelessWidget{
   CardPage( this.index);
