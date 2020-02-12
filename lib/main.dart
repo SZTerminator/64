@@ -15,7 +15,6 @@ void main() {
     ); // runApp
   } // main
 
-  
 class MainScreen extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
@@ -63,7 +62,6 @@ class MainScreen extends StatelessWidget{
       );
     }
   }
- 
 
 class CardTable extends StatelessWidget {
 
@@ -132,7 +130,7 @@ class Hddstate extends State<Hdd>{
       child:AspectRatio(
       aspectRatio: 1 / 1.4426373 ,
       child: GestureDetector(
-        onTap:() {front = !front;},
+        onLongPress:() {front = !front;},
         child: front ? imagefront : imageback,
       ),
     ),);
@@ -173,7 +171,6 @@ class CardPage extends StatelessWidget{
       );
     }
   }
-
 
 class Card extends StatefulWidget {
   Card(this.index,{Key key}) : super(key: key);
@@ -323,10 +320,8 @@ class Card1State extends State<Card1Card1State>
   @override
   Widget build(BuildContext context) {
     int img = index * 2;
-    String f = img.toString();
-    String str1 = '0' * (3 - f.runes.length) + f;
     img++;
-    f = img.toString();
+    String f = img.toString();
     String str2 = '0' * (3 - f.runes.length) + f;
     return  Center(
       child: 
@@ -340,7 +335,7 @@ class Card1State extends State<Card1Card1State>
               alignment: Alignment.center,  
               child: FlatButton(
                 onPressed: tickfront, 
-                child: Image.asset("images/bm_cards-$str1.png"),
+                child: TextSide(),
                 )
               ),
             Transform(
@@ -359,23 +354,26 @@ class Card1State extends State<Card1Card1State>
     } // Widget build
   } // CardState
 
-  class TextSide extends StatelessWidget{
-    String text ;
-    @override
-    Widget build(BuildContext context) {
-      return Container(
-        child: Column(
-          children: <Widget>[
-            Container(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                icon: Icon(Icons.share), 
-                onPressed: () {Share.share(text);} )),
-            Text("StrategyCard.ru | Карты Бизнес-моделей 2018"),
-            Text("Заголовок")
+class TextSide extends StatelessWidget{
+  String text ;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: <Widget>[
+          Container(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              icon: Icon(Icons.share), 
+              onPressed: () {Share.share(text);} )),
+          Text("StrategyCard.ru | Карты Бизнес-моделей 2018"),
+          Text("Заголовок"),
+          Text("description"),
+          Text("Keys"),
+          Text("Examples"),
+          SelectableText("some text u can select")
           ]
         ),
       );
     }
-
   }
