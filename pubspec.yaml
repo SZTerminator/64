@@ -9,11 +9,11 @@ dependencies:
     sdk: flutter
   path_provider: ^1.6.0
   cupertino_icons: ^0.1.2
+  share: ^0.6.3+5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  share: ^0.6.3+5
 
 flutter:
   assets:
