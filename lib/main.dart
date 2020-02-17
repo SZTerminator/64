@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import "package:share/share.dart";
 import 'dart:math';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';                                                                                                                                                                                                                                                                                    
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/''path_provider.dart';
 
 void main() {
   runApp(
@@ -70,24 +76,66 @@ class CardTable extends StatefulWidget{
 
 
 class CardTableState extends State<CardTable> {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+  Future<Map> readCounter() async {
+ 
+      final file = await _localFile;
+
+      // Read the file
+      String contents = await file.readAsString();
+
+      return jsonDecode(contents);
+
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/counter.txt');
+  }
   Widget build(context) {
-    int items = 64;
+    
+    int items =1 ;
     return Scaffold(
-      
+      appBar: AppBar(
+        title: IconButton(
+          icon: Icon(Icons.search), 
+          onPressed: (){
+
+setState((){
+  items = items + 1;
+});
+          }) 
+      ),
       extendBody: true,
       extendBodyBehindAppBar: false,
       primary: true,
       body: GridView.builder(
         itemCount: items,
         itemBuilder: (context,index){
+          File f = _localFile;
+          String a = f.readAsString().toString();
+          Map df = jsonDecode(a);
           bool front = true; // TO DO add a button to change starting side & make it Stateful to change sides while running
-          int img = index * 2 + 1;
-          String f = img.toString();
-          String str1 = '0' * (3 - f.runes.length) + f;
-          img++;
-          f = img.toString();
-          String str2 = '0' * (3 - f.runes.length) + f;
+          String str1 = df["frontimage"];
+          String str2 = df["backimage"];
           String cur = front ? str1 : str2;
+          bool ok = true;
+          List sample;
+          List depen = df["depen"];
+          List sort = df["sort"];
+          for(var n in sample){
+            if(!depen.contains(n) & !sort.contains(n) ){
+              ok = false;
+            }
+          }
+          if(!ok){
+
+          }
+
           return Hero(
             tag: index, 
             child: GestureDetector(
