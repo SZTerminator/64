@@ -268,7 +268,7 @@ class CardState extends State<Card>
   void tickfront() async {
     if(front){
     controller.forward();
-    await new Future.delayed(Duration(milliseconds: 500), () {
+    await new Future.delayed(Duration(milliseconds: 200), () {
       front = !front;
       setState(() {});
       controller1.reset();
@@ -284,7 +284,7 @@ class CardState extends State<Card>
     controller1.reverse();
     controller.reset();
     controller.forward();
-    await new Future.delayed(Duration(milliseconds: 500), () {
+    await new Future.delayed(Duration(milliseconds: 200), () {
       front = !front;
       setState(() {});
       stack=0;
@@ -296,12 +296,12 @@ class CardState extends State<Card>
   void initState() {
     super.initState();
     controller1 =
-      AnimationController(vsync: this, duration: const Duration(milliseconds : 500))
+      AnimationController(vsync: this, duration: const Duration(milliseconds : 200))
       ..addListener(() {
         setState(() {});
         });
     controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds : 500))
+      AnimationController(vsync: this, duration: const Duration(milliseconds : 200))
         ..addListener(() {
           setState(() {});
           });
@@ -316,8 +316,14 @@ class CardState extends State<Card>
       .animate(controller1);
     }
 
+  String keys = '';
+
   @override
   Widget build(BuildContext context) {
+    for (var item in items["keys"]) {
+      keys = keys + item + "\n";
+    }
+    text = items["title"] + "\n" + items["short description"] + "\n" + items["ful description"] + "\n" + keys  + "\n" +  items["case"];
     Widget a = Transform(
               transform: Matrix4.identity()
                 ..setEntry(3, 2, 0.005)
@@ -325,7 +331,24 @@ class CardState extends State<Card>
               alignment: Alignment.center,  
               child: FlatButton(
                 onPressed: tickfront, 
-                child: Image.asset(items["frontimage"]),
+                child: Stack(
+                  children: <Widget>[
+                    FractionallySizedBox(
+                      widthFactor: 0.5,
+                      heightFactor: 0.5,
+                      child: AspectRatio(
+                        aspectRatio: 1 / 1.4,
+                        child: Image.asset(items["frontimage"]),),
+                    ),
+                    IconButton(
+                      iconSize: 15,
+                      onPressed:() {
+                        Share.share(text);
+                      },
+                      icon: Icon(Icons.share),
+                    )
+                  ]
+                ),
                 )
               );
 
