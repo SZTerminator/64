@@ -241,7 +241,6 @@ class CardPage extends StatelessWidget{
     return Scaffold(
       appBar: AppBar(),
       body: Card(items),
-        
       );
     }
   }
@@ -267,17 +266,15 @@ class CardState extends State<Card>
 
   void tickfront() async {
     if(front){
-    controller.forward();
-    await new Future.delayed(Duration(milliseconds: 200), () {
-      front = !front;
-      setState(() {});
-      controller1.reset();
-      stack=1;controller1.forward();});}
-
+      controller.forward();
+      await new Future.delayed(Duration(milliseconds: 200), () {
+        front = !front;
+        setState(() {});
+        controller1.reset();
+        stack=1;controller1.forward();});}
     else if (!front){
       print("!front");
-      
-    }
+      }
     }
 
   void tickback() async {
@@ -317,7 +314,6 @@ class CardState extends State<Card>
     }
 
   String keys = '';
-
   @override
   Widget build(BuildContext context) {
     for (var item in items["keys"]) {
