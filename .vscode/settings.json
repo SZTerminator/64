@@ -1,0 +1,8 @@
+{
+    "files.autoSaveDelay": 1000000,
+    "editor.fontSize": 16,
+    "editor.accessibilityPageSize": 5,
+    "editor.autoClosingBrackets": "beforeWhitespace",
+    "editor.minimap.renderCharacters": false,
+    "workbench.colorTheme": "Default Light+"
+}
