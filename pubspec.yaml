@@ -13,15 +13,9 @@ dependencies:
   path_provider: ^1.6.1
 #  fluro: ^1.5.2
 
-flutter_icons:
-  android: "launcher_icon" 
-  ios: true
-  image_path: "images/bm_cards-134.png"
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.7.3
 
 flutter:
   assets:

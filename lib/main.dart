@@ -1,15 +1,13 @@
-//import 'dart:html';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import "package:share/share.dart";
 import 'dart:math';
 import 'dart:convert';
-//import 'dart:io';
+import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-//import 'package:path_provider/''path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 void main() {
   runApp(
     MaterialApp(
@@ -18,18 +16,35 @@ void main() {
     ), //MaterialApp
   ); // runApp
 } // main
-
 class MainScreen extends StatelessWidget{
-  
-  List items;
 
+  List decs = [];
+
+    Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/Decks.json');
+  }
+  Future readCustomDecks() async {
+    final file = await _localFile;
+    String contents = await file.readAsString();
+    decs =  jsonDecode(contents);
+  }
+  List items;
   getFileData() async {
     String b = await rootBundle.loadString("text/0.json").then((value) => value);
     items = jsonDecode(b);
   }
-
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     getFileData();
+    readCustomDecks();
     return Scaffold(
       body:Center(
         child:Container(
@@ -45,7 +60,7 @@ class MainScreen extends StatelessWidget{
                     Navigator.push(
                       context, 
                       MaterialPageRoute(
-                        builder: (context) =>  CardTable(items)
+                        builder: (context) =>  CardTable(items,decs)
                       )
                     ); 
                   },
@@ -72,21 +87,21 @@ class MainScreen extends StatelessWidget{
           ),
         ),
       ),
-    backgroundColor: Colors.orangeAccent[50],
+      backgroundColor: Colors.orangeAccent[50],
     );
   }
 }
-
 class CardTable extends StatefulWidget{
-  CardTable(this.items);
+  CardTable(this.items,this.decs);
+  final List decs;
   final List items;
   @override
-  State<StatefulWidget> createState() => CardTableState(items);
+  State<StatefulWidget> createState() => CardTableState(items, decs);
   }
-
 class CardTableState extends State<CardTable> {
-  CardTableState(this.items);
+  CardTableState(this.items,this.decs);
   final List items;
+  List decs;
 
   List a = [];
 
@@ -103,30 +118,42 @@ class CardTableState extends State<CardTable> {
   List<bool> tempActive = [true,true,true,true,true,true,true,true,true];
   
   List numbersToolTips =["Бизнес-модель", "Сеть", "Структура", "Процесс", "Совершенствование продукта", "Продуктовая система", "Сервис", "Канал" , "Бренд", "Участие клиента"];
-
   List lettersToolTips = ["Ресурсы -  Разнообразие (увеличение + / сокращение -)","Ресурсы - Границы (установление + / стирание -)","Ресурсы - Скорость (увеличение + / снижение -)","Ресурсы - Гибкость (повышение + / сокращение -)", "Процессы — Разнообразие (увеличение + / сокращение -)", "Процессы — Границы (установление + / стирание -)", "Процессы — Скорость (увеличение + / снижение -)", "Процессы — Гибкость (повышение + / сокращение -)","Ценности — Разнообразие (увеличение + / сокращение -)","Ценности — Границы (установление + / стирание -)","Ценности — Скорость (увеличение + / снижение -)","Ценности — Гибкость (повышение + / сокращение -)"];
 
-  bool orand = true;
-  bool ok;
-  
   Color col;
   Color color_rpv;
 
-  List pe = [];
-  List ne = [];
-
-  Widget appbar;
-
-  @override
+  bool front = true;
+  String image;
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+  final path = await _localPath;
+  return File('$path/Decks.json');
+}
+  Future<File> writeCounter(List decs) async {
+  final file = await _localFile;
+  return file.writeAsString(jsonEncode(decs));
+  }
+  Future readCounter() async {
+    final file = await _localFile;
+    String contents = await file.readAsString();
+    decs =  jsonDecode(contents);
+    setState(() {});
+  }
   void initState() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     super.initState();
     for (var item in items) {
       a.add(item);
       }
-      
     setState(() {});
   }
-
   Future<void> alertDialogAddCard(context){
     return showDialog(
       barrierDismissible: false,
@@ -162,10 +189,6 @@ class CardTableState extends State<CardTable> {
       );
 
   }
-
-  bool front = true;
-  String image;
-  
   changeTableDeck(){
     a = [];
     List intersection = [];
@@ -212,28 +235,47 @@ class CardTableState extends State<CardTable> {
     }
     intersection.addAll(association);
     a.addAll(intersection);
-    }
-
-  increment(){
-    front = !front;
-    setState(() {});
-    }
-
+  }
   Widget build(context) {
     image = front ? "frontimage" : "backtimage";
-    appbar = AppBar(
-        title: IconButton(
-      icon: Icon(Icons.search), 
-      onPressed: (){increment();})
-      );
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: (){alertDialogAddCard(context);},
         tooltip: "Add my examples",
-        
         ),
       backgroundColor: Colors.brown,
+      endDrawer: Drawer(
+        child:Container(
+          child: ListView(
+          children: List.generate(
+              decs.length + 1,
+               (index){
+                 if (index == 0){
+                   return Row(children: <Widget>[
+                     Text("My Decks"),
+                     IconButton(
+                       icon: Icon(Icons.refresh),
+                       onPressed: (){
+                         readCounter();
+                       })
+                   ],);
+                 }
+              return FlatButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (condext) => MyDeck(items,decs[index-1])));
+                }, 
+                child: Container(
+                  width: MediaQuery.of(context).size.width*0.5,
+                  height:MediaQuery.of(context).size.height*0.1,
+                child: Text(decs[index-1]["name"],
+                textAlign: TextAlign.center,),
+                ));
+            })
+           
+        ),)
+      ),
       drawer: Opacity(
         opacity: 0.7,
         child: Drawer(
@@ -245,7 +287,7 @@ class CardTableState extends State<CardTable> {
                   children: <Widget>[
                     IconButton(
                       icon: Icon(Icons.search), 
-                      onPressed: increment,
+                      onPressed: null,
                       ),
                       IconButton(
                         icon: Icon(Icons.settings_backup_restore), 
@@ -568,7 +610,6 @@ class CardTableState extends State<CardTable> {
             ),
           ),
         ),
-      appBar: appbar,
       body: GridView.extent(
         padding: EdgeInsets.all(MediaQuery.of(context).size.height*0.01),
         mainAxisSpacing: MediaQuery.of(context).size.height*0.01,
@@ -576,7 +617,6 @@ class CardTableState extends State<CardTable> {
         crossAxisSpacing: MediaQuery.of(context).size.width*0.04,
         maxCrossAxisExtent: 189,
         children:List.generate(a.length, (index) {
-
    return ClipRRect(
      borderRadius: BorderRadius.circular(15.0),
      child:Hero(
@@ -585,6 +625,10 @@ class CardTableState extends State<CardTable> {
               child:Image.asset(a[index][image]),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
+                  fullscreenDialog: false,
+                  settings: RouteSettings(
+
+                  ),
                   builder: (context) =>  CardPage(a[index],a[index]["cardnumber"])
                   )
                   );
@@ -598,8 +642,6 @@ class CardTableState extends State<CardTable> {
       );
     }
   }
-
-
 class CardPages extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
@@ -617,15 +659,37 @@ class CardPages extends StatelessWidget{
       );
     }
   }
-
-
-
 class CardPage extends StatelessWidget{
   CardPage( this.items,this.index);
-  final Map items; // index shall be final
+  final Map items;
   final int index;
-
-   Future<void> alertDialogAddExample(context){
+  List examples ;
+    Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+  final path = await _localPath;
+  return File('$path/examples.json');
+}
+  Future<File> writeCounter(List examples) async {
+  final file = await _localFile;
+  return file.writeAsString(jsonEncode(examples));
+  }
+  Future readCounter() async {
+    final file = await _localFile;
+    String contents = await file.readAsString();
+    List t =  jsonDecode(contents);
+    for (var item in t) {
+      if (items["cardnumber"] == item[2])
+      examples = item;
+    }
+      examples = [];
+  }
+  Future<void> alertDialogAddExample(context){
+    readCounter();
+    String name;
+    String desc;
     return showDialog(
       barrierDismissible: false,
       context: context,
@@ -637,34 +701,46 @@ class CardPage extends StatelessWidget{
         children: <Widget>[
           Text("Название компании"),
           TextFormField(
-            initialValue: "Название компании",
-            controller: null,
+            initialValue: examples[0],
+            onChanged: (value){
+            name = value;
+          },
           ),
           Text("Описание работы"),
-          TextFormField()
+          TextFormField(
+            initialValue: examples[1],
+            onChanged: (value){
+              desc = value;
+            },
+          )
         ]
-      )),
+      )
+    ),
     actions: <Widget>[
       FlatButton(
-        onPressed: null, 
+        onPressed: (){
+          examples = [name,desc,items["cardnumber"]];
+          writeCounter(examples);
+          Navigator.pop(context);
+        }, 
         child: Text("Save")),
         FlatButton(
-        onPressed: null, 
+        onPressed: (){
+          Navigator.pop(context);
+        }, 
         child: Text("Cancel"))
     ],
   );
       }
-      );
-
+    );
   }
-
-  @override
-
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: (){alertDialogAddExample(context);},
+        onPressed: (){
+          alertDialogAddExample(context);
+        },
         tooltip: "Add my examples",
         
         ),
@@ -672,38 +748,119 @@ class CardPage extends StatelessWidget{
       //appBar: AppBar(),
       body: ClipRRect(
         borderRadius: BorderRadius.circular(15.0),
-        child: Card(items,index),
+        child: Card(items,index,examples),
       ),
-        
       );
     }
   }
 class Card extends StatefulWidget {
-
-  Card(this.items,this.index,{Key key}) : super(key: key);
+  Card(this.items,this.index,this.examples,{Key key}) : super(key: key);
   final Map items;
+  List examples;
   final int index;
 
   CardState createState() => CardState(items,index);
 }
+class CardState extends State<Card> with TickerProviderStateMixin {
+  CardState(this.items,this.index);
+  AnimationController controller;
+  final int index;
+  AnimationController controller1;
+  Animation sec;
+  Animation qwer;
+  Animation animation;
+  bool front = true;
+  bool anim_active = false;
+  int stack = 0;
+  Map items;
+  List examples;
+  String text ;
 
-class CardState extends State<Card>
-  with TickerProviderStateMixin {
-    CardState(this.items,this.index);
-    AnimationController controller;
-    final int index;
-    AnimationController controller1;
-    Animation sec;
-    Animation qwer;
-    Animation animation;
-    bool front = true;
-    bool anim_active = false;
-    int stack = 0;
-    Map items;
-    String text ;
+  List decs = [];
+  List example;
 
-
-  void tickfront() async {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  Future<File> writeCounter(List examples) async {
+  final file = await _localFile;
+  return file.writeAsString(jsonEncode(examples));
+  }
+  Future readExamples() async {
+    final file = await _localFile;
+    String contents = await file.readAsString();
+    List t =  jsonDecode(contents);
+    for (var item in t) {
+      if (items["cardnumber"] == item[2])
+      examples = item;
+    }
+      examples = [];
+  }
+  Future<File> get _localFileexa async {
+  final path = await _localPath;
+  return File('$path/examples.json');
+}
+  Future<File> get _localFile async {
+  final path = await _localPath;
+  return File('$path/Decks.json');
+}
+  Future<File> writeCustomDecks(List decs) async {
+  final file = await _localFile;
+  return file.writeAsString(jsonEncode(decs));
+  }
+  Future readCustomDecks() async {
+    final file = await _localFile;
+    String contents = await file.readAsString();
+    return jsonDecode(contents);
+  }
+  Future<void> addToCustomDeck(){
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text("Where?"),
+          children: List.generate(
+            decs.length+1, (index) {
+              if (index == 0){
+                print("herer");
+                return SimpleDialogOption(
+                  child: Text("New"),
+                  onPressed:(){
+                    decs.add({
+                      "name" : "New Deck",
+                      "description" : "",
+                      "heading" : items["cardnumber"],
+                      "cards" : [items["cardnumber"]]
+                    });
+                    writeCustomDecks(decs);
+                    Navigator.pop(context, decs);
+                  },
+                );
+              }
+              else{
+                print("her234234er");
+                return SimpleDialogOption(
+                  onPressed: (){
+                  if(decs[index-1]["cards"].contains(items["cardnumber"])){
+                    decs[index-1]["cards"].remove(items["cardnumber"]);
+                  }
+                  else {
+                    decs[index-1]["cards"].add(items["cardnumber"]);
+                  }
+                  writeCustomDecks(decs);
+                  Navigator.pop(context, decs);
+                }, 
+                child: Text(decs[index-1]["name"]),
+              );}
+            }
+          )
+        );
+      }
+    );
+  }
+  void flip() async {
     if(!anim_active)
     {
       if(front){
@@ -739,18 +896,18 @@ class CardState extends State<Card>
 
     }
     }
-
-getText(){
-  for (var item in items["keys"]) {
-      keys = keys + item + "\n";
-    }
-        text = "StrategyCard.ru | Карты Бизнес-моделей 2018\n" + items["title"] + "\n" + items["short description"] + "\n" + items["ful description"] + "\n" + keys  + "\n" +  items["case"];
-
-}
-
-  @override
   void initState() {
+    readCustomDecks().then((value) {
+      setState(() {
+        decs = value;
+      }
+    );
+  });
     super.initState();
+    for (var item in items["keys"]) {
+        keys = keys + item + "\n";
+      }
+    text = "StrategyCard.ru | Карты Бизнес-моделей 2018\n" + items["title"] + "\n" + items["short description"] + "\n" + items["ful description"] + "\n" + keys  + "\n" +  items["case"];
     controller1 =
       AnimationController(vsync: this, duration: const Duration(milliseconds : 350))
       ..addListener(() {
@@ -771,55 +928,61 @@ getText(){
       end: 0.0)
       .animate(controller1);
     }
-  
   String keys = '';
-
-  @override
   Widget build(BuildContext context) {
     animation = front ? qwer : sec;
     double angle = front ? pi : -pi;
-
     return  Center(
       child: GestureDetector(
-                onTap: tickfront, 
-                onSecondaryTapCancel: null,
-                child: Transform(
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.005)
-                ..rotateY(angle * animation .value),
-              alignment: Alignment.center,  
-              child: FlatButton(
-                onPressed: tickfront, 
-                child: Stack(
-                  children: <Widget>[
-                    FractionallySizedBox(
-                      heightFactor: 0.6,
-                      child: AspectRatio( //
-                        aspectRatio: 756 / 1150,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15.0),
-                          child:front ? TextSide(items,index) : 
+        onTap: flip,
+        child: Transform(
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.005)
+            ..rotateY(angle * animation.value),
+          alignment: Alignment.center,  
+          child: FlatButton(
+            onPressed: flip, 
+            child: Stack(
+              children: <Widget>[
+                FractionallySizedBox(
+                  heightFactor: 0.6,
+                  child: AspectRatio(
+                    aspectRatio: 756 / 1150,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15.0),
+                      child: front ? TextSide(items, index) : 
                         Image.asset(items["backtimage"]),
-                        )),
                     ),
-                    IconButton(
-                      
-                      iconSize: 15,
-                      onPressed:() {
-                        getText();
-                        Share.share(text);
-                      },
-                      icon: Icon(Icons.share),
-                    )
-                  ]
+                  ),
                 ),
-                )
-              ),
-                )
-      );
-    } // Widget build
-  } // CardState
-
+                Positioned(
+                  bottom: 5,
+                  right: 30,
+                  child: Row(
+                    children: <Widget>[
+                      IconButton(
+                        iconSize: 15,
+                        onPressed:() {
+                          Share.share(text);
+                        },
+                        icon: Icon(Icons.share),
+                      ),
+                      IconButton(
+                        iconSize:  15,
+                        icon: Icon(Icons.add), 
+                        onPressed: addToCustomDeck,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ); // Center
+  } // Widget build
+} // CardState
 class TextSide extends StatelessWidget{
   final Map items;
   TextSide(this.items,this.index);
@@ -828,21 +991,18 @@ class TextSide extends StatelessWidget{
   String keys = "";
 
   getText(){
-      keys = "";
+    keys = "";
     for (var item in items["keys"]) {
-        keys = keys + item + "\n";
-      }
-          text = items["title"] + "\n" + items["short description"] + "\n" + items["ful description"] + "\n" + keys  + "\n" +  items["case"];
-
+      keys = keys + item + "\n";
     }
+    text = items["title"] + "\n" + items["short description"] + "\n" + items["ful description"] + "\n" + keys  + "\n" +  items["case"];
+  }
 
   int counter = 0;
 
   List numbersToolTips =["Бизнес-модель", "Сеть", "Структура", "Процесс", "Совершенствование продукта", "Продуктовая система", "Сервис", "Канал" , "Бренд", "Участие клиента"];
-
   List lettersToolTips = ["Ресурсы -  Разнообразие (увеличение + / сокращение -)","Ресурсы - Границы (установление + / стирание -)","Ресурсы - Скорость (увеличение + / снижение -)","Ресурсы - Гибкость (повышение + / сокращение -)", "Процессы — Разнообразие (увеличение + / сокращение -)", "Процессы — Границы (установление + / стирание -)", "Процессы — Скорость (увеличение + / снижение -)", "Процессы — Гибкость (повышение + / сокращение -)","Ценности — Разнообразие (увеличение + / сокращение -)","Ценности — Границы (установление + / стирание -)","Ценности — Скорость (увеличение + / снижение -)","Ценности — Гибкость (повышение + / сокращение -)"];
 
-  @override
   Widget build(BuildContext context) {
     final List rpv = ["R1","R2","R3","R4","P1","P2","P3","P4","V1","V2","V3","V4"];
     double height = MediaQuery.of(context).size.height;
@@ -1016,7 +1176,13 @@ class TextSide extends StatelessWidget{
               style: TextStyle(
                 fontWeight: FontWeight.bold,),
               textAlign: TextAlign.start,
-            ),),
+            ),),Container(
+              width: height*756*0.6/1150*0.8,
+              height: 15,
+              child: Text(items["companies"],
+              textAlign: TextAlign.justify,
+                  textScaleFactor: 0.8,),
+            ),
             Container(
               width: height*756*0.6/1150*0.8,
               height: height*0.6*0.3,
@@ -1047,7 +1213,7 @@ class TextSide extends StatelessWidget{
                       p ? plus ? Color.fromRGBO(247, 159, 122, 1.0) : Color.fromRGBO(217, 126, 137, 1.0) :
                       plus ? Color.fromRGBO(114, 199, 165, 1.0) : Color.fromRGBO(72, 159, 124, 1.0),
                     child: Center(
-                      child: Text("${items["sort"][counter++]}"),),
+                      child: Text("${items["sort"][counter+1]}"),),
                   ),
                   );
               }
@@ -1055,14 +1221,116 @@ class TextSide extends StatelessWidget{
               return Container(
                 width: height * 0.6 * 756 / 1150 * 0.1,
                 height: height * 1 / 12 * 0.6,
-                );
-              }
+              );
+            }
             }
           ),
-            ),
-            ]
-            ),
+          ),
+          ]
+        ),
       ),
-      );
-    }
+    );
   }
+}
+class MyDeck extends StatefulWidget{
+  MyDeck(this.items,this.deck);
+  final List items;
+  final Map deck;
+  State<StatefulWidget> createState() => MyDeckState(items, deck);
+}
+class MyDeckState extends State<MyDeck>{
+  MyDeckState(this.items,this.deck);
+  final List items;
+  final Map deck;
+  var r;
+  Future<void> alertDialogAddCard(context){
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        String name;
+        return AlertDialog(
+    title: Text("Добавить свою бизнесс модель"),
+    content: Form(
+      child: Column(
+        children: <Widget>[
+          Text("Название модели"),
+          TextFormField(
+            onChanged: (value){
+              name = value;
+              setState(() {});
+            },
+            onSaved: (value){
+              name = value;
+              deck["name"] = name;
+              setState(() {});
+              Navigator.pop(context,deck);
+            },)
+        ]
+      )
+    ),
+    actions: <Widget>[
+      FlatButton(
+        onPressed: (){
+          deck["name"] = name;
+          setState(() {});
+          Navigator.pop(context,deck);
+        }, 
+        child: Text("Save")),
+    ],
+  );
+      }
+      );
+  }
+  Widget build(context) {
+    print(deck);
+    return Scaffold(
+      body: Container(
+        margin: EdgeInsets.only(top: 50),
+        child:Column(children: <Widget>[
+        Row(children: <Widget>[
+          Text(deck["name"]),
+          IconButton(icon: Icon(Icons.edit), 
+          onPressed: (){
+            alertDialogAddCard(context);
+          })
+        ],),
+        Text("Main Card"),
+        Container(
+          height: MediaQuery.of(context).size.height * 0.4,
+         child:AspectRatio(
+           aspectRatio: 756/1150,
+           child: Image.asset(items[deck["cards"][0]]["frontimage"]),)
+        ),
+        Text("Other Cards"),
+        Container(
+          height: 300,
+          child: GridView.extent(
+        padding: EdgeInsets.all(MediaQuery.of(context).size.height*0.01),
+        mainAxisSpacing: MediaQuery.of(context).size.height*0.01,
+        childAspectRatio: 756 / 1150,
+        crossAxisSpacing: MediaQuery.of(context).size.width*0.04,
+        maxCrossAxisExtent: 189,
+        children:List.generate(deck["cards"].length-1, (index) {
+   return ClipRRect(
+     borderRadius: BorderRadius.circular(15.0),
+     child:Hero(
+            tag: index, 
+            child: GestureDetector(
+              child:Image.asset(items[deck["cards"][index+1]]["frontimage"]),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) =>  CardPage(items[deck["cards"][index+1]],items[deck["cards"][index+1]]["cardnumber"])
+                  )
+                  );
+                }
+              )
+           )
+   );
+        })
+        )
+        )
+      ],),)
+    );
+  }
+}
